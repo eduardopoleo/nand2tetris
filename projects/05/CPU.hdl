@@ -39,5 +39,74 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    Not(in=instruction[15], out=mux1Sel);
+    Mux16(a=outMLoop, b=instruction, sel=mux1Sel, out=outMOrInst);
+
+    Or(a=mux1Sel, b=instruction[5], out=ALoad);
+    ARegister(in=outMOrInst, load=ALoad, out=A, out[0..14]=addressM);
+
+    Mux16(a=A, b=inM, sel=instruction[12], out=AorM);
+    ALU(x=D, y=AorM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=outMLoop, zr=zero, ng=neg);
+    
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=outMLoop, load=loadD, out=D);
+
+    And(a=instruction[15], b=instruction[3], out=writeM);
+
+    // j1 instruction[2]
+    // j2 instruction[1]
+    // j3 instruction[0]
+
+    // GT
+    // Verify that Not Zero, Not Neg
+    Not(in=zero, out=notZero);
+    Not(in=neg, out=notNeg);
+    And(a=notZero, b=notNeg, out=isGT);
+
+    // -J1 and J3
+    Not(in=instruction[2], out=notJ1);
+    And(a=notJ1, b=instruction[0], out=gtInst);
+    And(a=isGT, b=gtInst, out=gtResult);
+
+    // LT
+    // verify that's neg (No need cuz is given by the ALU)
+    // J1 and -J3
+
+    Not(in=instruction[0], out=notJ3);
+    And(a=notJ3, b=instruction[2], out=ltInst);
+    And(a=neg, b=ltInst, out=ltResult);
+
+    //EQ
+    // Verify 0. No need cuz zero is given by ALU
+    And(a=notJ1, b=instruction[1], out=eqTemp1);
+    And(a=instruction[2], b=instruction[1], out=eqTemp2);
+    And(a=eqTemp2, b=notJ3, out=eqTemp3);
+    Or(a=eqTemp1, b=eqTemp3, out=eqInst);
+
+    And(a=zero, b=eqInst, out=eqResult);
+
+    // NE
+    // verify as NOT(zero) 
+    // we did this calculation above already on GT
+
+    And(a=instruction[0], b=instruction[2], out=j1Andj3);
+    Not(in=instruction[1], out=notJ2);
+    And(a=j1Andj3, b=notJ2, out=neqInst);
+
+    And(a=neqInst, b=notZero, out=neqResult);
+
+    //JPM does just required a code
+    And(a=j1Andj3, b=instruction[1], out=jmpResult);
+
+    //All results: gtResult, ltResult, eqResult, neqResult, jmpResult
+    Or(a=gtResult, b=ltResult, out=or1);
+    Or(a=or1, b=eqResult, out=or2);
+    Or(a=or2, b=neqResult, out=or3);
+    Or(a=or3, b=jmpResult, out=cInstLoad);
+    And(a=cInstLoad, b=instruction[15], out=pcLoad);
+
+
+    Not(in=pcLoad, out=pcInc);
+
+    PC(in=A, load=pcLoad, inc=pcInc, reset=reset, out[0..14]=pc);
 }
