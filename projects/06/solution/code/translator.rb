@@ -1,7 +1,7 @@
 class Translator
-  def translate(line)
-    if line.include?('@')
-      number = line[1..-1]
+  def translate(tokens)
+    if tokens.first.include?('@')
+      number = tokens.first[1..-1]
 
       binary = number.to_i.to_s(2)
 
@@ -11,6 +11,12 @@ class Translator
 
       return zeros + binary
     end
+
+    dest = tokens[0]
+    comp = tokens[1]
+    jmp = tokens[2]
+
+    return ('111' + computations[comp] + destinations[dest] + jumps[jmp])
   end
 
   private
@@ -19,7 +25,7 @@ class Translator
     '000000000000000'
   end
 
-  def computation
+  def computations
     {
       '0' =>   '0101010',
       '1' =>   '0111111',
@@ -51,7 +57,7 @@ class Translator
     }
   end
 
-  def destination
+  def destinations
     {
       '' => '000',
       'M' => '001',
@@ -64,7 +70,7 @@ class Translator
     }
   end
 
-  def jump
+  def jumps
     {
       '' => '000',
       'JGT'  => '001',
