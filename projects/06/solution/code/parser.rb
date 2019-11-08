@@ -60,19 +60,3 @@ class Parser
 
   attr_reader :symbols_table, :ram_address_counter 
 end
-
-
-__END__
-
-symbols_table = TableSymbol.new
-
-cleaner = Clearner.new(file, symbols_table)
-
-cleaner.clean
-
-File.new(temp).each_line do |line|
-  parsed_line = Parser.parse(line) => ['token1', 'token2', 'token3']
-  binary = Translator.translate(parsed_line)
-
-  file << binary
-end

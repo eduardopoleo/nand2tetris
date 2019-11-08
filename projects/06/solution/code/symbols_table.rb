@@ -22,7 +22,7 @@ class SymbolsTable
       'ARG' => 2,
       'THIS' => 3,
       'THAT' => 4,
-      'RO' => 0,
+      'R0' => 0,
       'R1' => 1,
       'R2' => 2,
       'R3' => 3,

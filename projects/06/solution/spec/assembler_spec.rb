@@ -38,12 +38,23 @@ describe Assembler do
     let(:expected) { File.expand_path(expected_path, __dir__) }
     let(:result) { File.expand_path(result_path, __dir__) }
 
-    context 'when the file has empty white lines and comments lines' do
+    context 'a small file' do
       let(:target_path) { './fixtures/targets/Add.asm' }
       let(:expected_path) { './fixtures/expected/Add.hack' }
       let(:result_path) { '../results/Add.hack' }
 
-      it 'removes the empty lines' do
+      it 'compiles it' do
+        described_class.new.compile(target)
+        expect(same_content?(expected, result)).to be_truthy
+      end
+    end
+
+    context 'a slightly bigger file' do
+      let(:target_path) { './fixtures/targets/Max.asm' }
+      let(:expected_path) { './fixtures/expected/Max.hack' }
+      let(:result_path) { '../results/Max.hack' }
+
+      it 'compiles it' do
         described_class.new.compile(target)
         expect(same_content?(expected, result)).to be_truthy
       end
