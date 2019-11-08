@@ -16,7 +16,7 @@ class Translator
     comp = tokens[1]
     jmp = tokens[2]
 
-    return ('111' + computations[comp] + destinations[dest] + jumps[jmp])
+    '111' + computations[comp] + destinations[dest] + jumps[jmp]
   end
 
   private

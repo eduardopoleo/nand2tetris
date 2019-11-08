@@ -18,5 +18,21 @@ describe Translator do
         expect(Translator.new.translate(tokens)).to eq('1111110111001000')
       end
     end
+
+    context 'when its a C instruction with computation and jump' do
+      let(:tokens) { ['', '0', 'JMP'] }
+
+      it 'translates the operation to the corresponding binary' do
+        expect(Translator.new.translate(tokens)).to eq('1110101010000111')
+      end
+    end
+
+    context 'when its a C instruction with dest, comp and jump' do
+      let(:tokens) { ['AMD', 'D-A', 'JNE'] }
+
+      it 'translates the operation to the corresponding binary' do
+        expect(Translator.new.translate(tokens)).to eq('1110010011111101')
+      end
+    end
   end
 end
