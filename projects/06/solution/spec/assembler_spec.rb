@@ -59,5 +59,16 @@ describe Assembler do
         expect(same_content?(expected, result)).to be_truthy
       end
     end
+
+    context 'a massive file' do
+      let(:target_path) { './fixtures/targets/Pong.asm' }
+      let(:expected_path) { './fixtures/expected/Pong.hack' }
+      let(:result_path) { '../results/Pong.hack' }
+
+      it 'compiles it' do
+        described_class.new.compile(target)
+        expect(same_content?(expected, result)).to be_truthy
+      end
+    end
   end
 end
