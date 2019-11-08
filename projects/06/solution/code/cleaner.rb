@@ -43,7 +43,7 @@ class Cleaner
   end
 
   def temp_location
-    File.expand_path('temp', __dir__)
+    File.expand_path('./temp', __dir__)
   end
 
   def comment_or_blank?(line)
