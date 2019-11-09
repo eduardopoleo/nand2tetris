@@ -52,6 +52,15 @@ describe Parser do
       end
     end
 
+    context 'when finding a var thats already been seen' do
+      let(:line) { '@counter' }
+
+      it 'returns the same adress value all the time' do
+        expect(parser.parse('@counter')).to eq(['@16'])
+        expect(parser.parse('@counter')).to eq(['@16'])
+      end
+    end
+
     context 'when the instruction is a simple assignment' do
       let(:line) { 'M=1' }
 
