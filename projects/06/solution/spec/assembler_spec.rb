@@ -61,12 +61,6 @@ describe Assembler do
     end
 
     context 'a massive file' do
-      #TODO: This is giving me an error:
-      # To debug: 
-      # Write a test for the cleaner with PONG to verify that the temp
-      # is properly written
-      # Once that's done preserve the temp to be able to cross reference the
-      # line that's failing.
       let(:target_path) { './fixtures/targets/Pong.asm' }
       let(:expected_path) { './fixtures/expected/Pong.hack' }
       let(:result_path) { '../results/Pong.hack' }
