@@ -20,7 +20,7 @@ class Parser
       if address
         line = "@#{address}"
       else
-        symbols_table.add(symbol, address)
+        symbols_table.add(symbol, ram_address_counter)
         line = "@#{ram_address_counter}"
         @ram_address_counter += 1
       end
