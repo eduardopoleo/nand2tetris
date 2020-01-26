@@ -7,8 +7,7 @@ class Assembler
   def compile(target)
     symbols_table = SymbolsTable.new
 
-    # it probably would make sense to have this create the file
-    # at a particular location
+    # Creates a new clean file
     Cleaner.new(target, symbols_table).clean
 
     parser = Parser.new(symbols_table)
@@ -16,9 +15,12 @@ class Assembler
 
     File.open(result_location(target), "w") do |file|
       File.readlines(temp_location).each do |line|
+        # Parses each lines into tokens
         tokens = parser.parse(line)    
+        # token are translated into binary instruction
         binary_line = translator.translate(tokens)
 
+        # final output is written to a file
         file << "#{binary_line}\n"
       end
     end

@@ -1,17 +1,26 @@
+# Translate an array of tokens into their corresponding HACK binary code
+# It handles A and C instruction tokens:
+# - A instruction tokens get translated to 0 + mem binary_location
+# - C instruction tokens get translated to 111 + comp + dest + jump
+
+# EXAMPLES
+# INPUT: ['@16']               OUTPUT: '0000000000010000'
+# INPUT: ['AMD', 'D-A', 'JNE'] OUTPUT: '1110010011111101'
+
 class Translator
   def translate(tokens)
+    # if it's a A instructions token
     if tokens.first.include?('@')
-      number = tokens.first[1..-1]
+      decimal_mem_loc = tokens.first[1..-1]
 
-      binary = number.to_i.to_s(2)
+      mem_loc_binary = decimal_mem_loc.to_i.to_s(2)
 
-      number_of_extra_zeros = (15 - binary.size)
+      zeros_padding = (16 - mem_loc_binary.size)
 
-      zeros = padding[0..number_of_extra_zeros]
-
-      return zeros + binary
+      return '0'*zeros_padding + mem_loc_binary
     end
 
+    # if its an C instruction token
     dest = tokens[0]
     comp = tokens[1]
     jmp = tokens[2]
@@ -20,10 +29,6 @@ class Translator
   end
 
   private
-
-  def padding
-    '000000000000000'
-  end
 
   def computations
     {

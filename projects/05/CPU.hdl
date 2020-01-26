@@ -103,8 +103,12 @@ CHIP CPU {
     Or(a=or1, b=eqResult, out=or2);
     Or(a=or2, b=neqResult, out=or3);
     Or(a=or3, b=jmpResult, out=cInstLoad);
-    And(a=cInstLoad, b=instruction[15], out=pcLoad);
 
+    // If:
+    // C instruction
+    // JMP conditions match ALU results
+    // then we load the PC
+    And(a=cInstLoad, b=instruction[15], out=pcLoad);
 
     Not(in=pcLoad, out=pcInc);
 

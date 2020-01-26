@@ -1,3 +1,14 @@
+# - Parses 1 instruction at a time
+# - For A instructions:
+#   - Replaces variable names for corresponding memory instructions
+# - For C instructions:
+#   - Parses every command in the instructions into an array of tokens
+
+# EXAMPLES:
+# INPUT: '@0'               OUTPUT: ['@0']
+# INPUT: '@INFINITE_LOOP'   OUTPUT: ['@4']
+# INPUT  'D=M+1;JEQ'        OUTPUT: ['D', 'M+1', 'JEQ']  
+
 class Parser
   def initialize(symbols_table)
     @symbols_table = symbols_table
