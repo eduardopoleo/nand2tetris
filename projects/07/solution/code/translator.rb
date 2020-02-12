@@ -16,10 +16,41 @@ class Translator
   def translate
     case operation
     when 'C_ARITHMETIC'
-
-    when 'C_PUSH' # only: argument, local this, that
+      if segment_name == 'add'
+        [
+          '// add',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'D=M',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'M=M+D',
+          '@SP',
+          'M=M+1'
+        ].join("\n").concat("\n")
+      elsif segment_name == 'sub'
+        # this is almost same as add but I'll
+        # see if the other arithmetic ops also resemble this
+        [
+          '// sub',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'D=M',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'M=M-D',
+          '@SP',
+          'M=M+1'
+        ].join("\n").concat("\n")
+      end
+    when 'C_PUSH'
       if REGULAR_SEGMENTS.include?(segment_name)
         [
+          "// push #{segment_name} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
           "@#{assebly_segment_name}",
@@ -33,6 +64,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'constant'
         [
+          "// push #{segment_name} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
           '@SP',
@@ -43,6 +75,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'static'
         [
+          "// push #{segment_name} #{segment_offset}",
           "@#{assebly_segment_name}",
           'D=M',
           '@SP',
@@ -53,6 +86,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'temp'
         [
+          "// push #{segment_name} #{segment_offset}",
           '@5',
           'D=A',
           "@#{segment_offset}",
@@ -66,6 +100,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'pointer'
         [
+          "// push #{segment_name} #{segment_offset}",
           "@#{pointer_segment_name}",
           'D=M',
           '@SP',
@@ -78,6 +113,7 @@ class Translator
     when 'C_POP'
       if REGULAR_SEGMENTS.include?(segment_name)
         [
+          "// pop #{segment_name} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
           "@#{assebly_segment_name}",
@@ -94,6 +130,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'static'
         [
+          "// pop #{segment_name} #{segment_offset}",
           '@SP',
           'M=M-1',
           'A=M',
@@ -103,6 +140,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'temp'
         [
+          "// pop #{segment_name} #{segment_offset}",
           '@5',
           'D=A',
           "@#{segment_offset}",
@@ -119,6 +157,7 @@ class Translator
         ].join("\n").concat("\n")
       elsif segment_name == 'pointer'
         [
+          "// pop #{segment_name} #{segment_offset}",
           '@SP',
           'M=M-1',
           'A=M',

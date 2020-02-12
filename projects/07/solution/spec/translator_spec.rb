@@ -1,15 +1,58 @@
 require_relative './spec_helper'
 require_relative '../code/translator'
 
-# TODO:
-# - push pointer 0/1, has to do with this, that watch 
-# https://www.coursera.org/learn/nand2tetris2/lecture/lqz8H/unit-1-5-vm-implementation-memory-segments
-# for explanation
-
 describe Translator do
   describe '.translate' do
     let(:filename) { 'Overrideme.vm' }
     subject { described_class.translate(operation, arguments, filename) }
+
+    context 'when the operation is a C_ARITHMETIC' do
+      let(:operation) { 'C_ARITHMETIC' }
+
+      context 'add' do
+        let(:arguments) { ['add'] }
+
+        let(:result) do
+          [ 
+            '// add',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'M=M+D',
+            '@SP',
+            'M=M+1'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'sub' do
+        let(:arguments) { ['sub'] }
+
+        let(:result) do
+          [
+            '// sub',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'M=M-D',
+            '@SP',
+            'M=M+1'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+    end
 
     context 'when the operation is a C_PUSH' do
       let(:operation) { 'C_PUSH' }
@@ -19,6 +62,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push local 8',
             '@8',
             'D=A',
             '@LCL', # <-- Assembly segment name
@@ -30,9 +74,9 @@ describe Translator do
             '@SP',
             'M=M+1'
           ].join("\n").concat("\n")
-
-          it { is_expected.to eq(result) }
         end
+
+        it { is_expected.to eq(result) }
       end
 
       context 'argument' do
@@ -40,6 +84,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push argument 8',
             '@8',
             'D=A',
             '@ARG', # <-- Assembly segment name
@@ -61,6 +106,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push this 8',
             '@8',
             'D=A',
             '@THIS', # <-- Assembly segment name
@@ -82,6 +128,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push that 8',
             '@8',
             'D=A',
             '@THAT', # <-- Assembly segment name
@@ -103,6 +150,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push constant 10',
             '@10',
             'D=A',
             '@SP',
@@ -122,6 +170,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push static 5',
             '@Foo.5',
             'D=M',
             '@SP',
@@ -140,6 +189,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// push temp 7',
             '@5',
             'D=A',
             '@7',
@@ -162,6 +212,7 @@ describe Translator do
 
           let(:result) do
             [
+              '// push pointer 0',
               '@THIS',
               'D=M',
               '@SP',
@@ -180,6 +231,7 @@ describe Translator do
 
           let(:result) do
             [
+              '// push pointer 1',
               '@THAT',
               'D=M',
               '@SP',
@@ -203,6 +255,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop local 10',
             '@10',
             'D=A',
             '@LCL',
@@ -227,6 +280,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop argument 10',
             '@10',
             'D=A',
             '@ARG',
@@ -251,6 +305,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop this 10',
             '@10',
             'D=A',
             '@THIS',
@@ -275,6 +330,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop that 10',
             '@10',
             'D=A',
             '@THAT',
@@ -300,6 +356,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop static 5',
             '@SP',
             'M=M-1',
             'A=M',
@@ -317,6 +374,7 @@ describe Translator do
 
         let(:result) do
           [
+            '// pop temp 7',
             '@5',
             'D=A',
             '@7',
@@ -342,6 +400,7 @@ describe Translator do
 
           let(:result) do
             [
+              '// pop pointer 0',
               '@SP',
               'M=M-1',
               'A=M',
@@ -359,6 +418,7 @@ describe Translator do
 
           let(:result) do
             [
+              '// pop pointer 1',
               '@SP',
               'M=M-1',
               'A=M',
