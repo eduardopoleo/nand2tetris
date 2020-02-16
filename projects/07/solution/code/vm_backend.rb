@@ -29,13 +29,17 @@ def comment_or_blank?(line)
   !!(line =~ /^\/|\A\s*\Z/)
 end
 
+# Translator needs to keep track of the number of
+# jmps done to generate unique labels per condition jmp instruction
+translator = Translator.new(filename)
+
 File.open(result_file, "w") do |result|
   File.readlines(target_file).each do |line|
     next if comment_or_blank?(line)
     line = line.gsub("\r\n", '')
     operation, arguments = Parser.parse(line)
 
-    blob = Translator.translate(operation, arguments, filename)
+    blob = translator.translate(operation, arguments)
 
     result << blob
   end

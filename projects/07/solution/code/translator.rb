@@ -1,59 +1,68 @@
 class Translator
-  attr_reader :operation, :arguments, :filename
+  attr_reader :jmp_label_count, :filename, :operation, :arguments
 
-  REGULAR_SEGMENTS=['local', 'argument', 'this', 'that']
+  REGULAR_SEGMENTS = ['local', 'argument', 'this', 'that']
+  CONDITIONAL_OPERATIONS = ['eq', 'lt', 'gt']
+  ARITHMETIC_OPERATIONS = ['add', 'sub', 'and', 'or']
+  NEG_OR_NOT = ['neg', 'not']
 
-  def self.translate(operation, arguments, filename)
-    new(operation, arguments, filename).translate
+  def initialize(filename)
+    @filename = filename
+    @jmp_label_count = -1
   end
 
-  def initialize(operation, arguments, filename)
+  def translate(operation, arguments)
     @operation = operation
     @arguments = arguments
-    @filename = filename
-  end
 
-  def translate
     case operation
     when 'C_ARITHMETIC'
-      if segment_name == 'add'
+      if ARITHMETIC_OPERATIONS.include?(segment_or_operation)
         [
-          '// add',
+          "// #{segment_or_operation}",
           '@SP',
           'M=M-1',
           'A=M',
           'D=M',
           '@SP',
-          'M=M-1',
-          'A=M',
-          'M=M+D',
-          '@SP',
-          'M=M+1'
+          'A=M-1',
+          "M=M#{vm_to_arithmetic_op}D",
         ].join("\n").concat("\n")
-      elsif segment_name == 'sub'
-        # this is almost same as add but I'll
-        # see if the other arithmetic ops also resemble this
+      elsif CONDITIONAL_OPERATIONS.include?(segment_or_operation)
+        @jmp_label_count += 1
+
         [
-          '// sub',
+          "// #{segment_or_operation}",
           '@SP',
           'M=M-1',
           'A=M',
           'D=M',
           '@SP',
-          'M=M-1',
-          'A=M',
-          'M=M-D',
+          'A=M-1',
+          'D=M-D',
+          'M=-1',
+          "@#{jmp_condition_label}",
+          "D;#{vm_to_cond_jump}",
           '@SP',
-          'M=M+1'
+          'A=M-1',
+          'M=0',
+          "(#{jmp_condition_label})"
+        ].join("\n").concat("\n")
+      elsif NEG_OR_NOT.include?(segment_or_operation)
+        [
+          "// #{segment_or_operation}",
+          '@SP',
+          'A=M-1',
+          "M=#{vm_to_arithmetic_op}M"
         ].join("\n").concat("\n")
       end
     when 'C_PUSH'
-      if REGULAR_SEGMENTS.include?(segment_name)
+      if REGULAR_SEGMENTS.include?(segment_or_operation)
         [
-          "// push #{segment_name} #{segment_offset}",
+          "// push #{segment_or_operation} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
-          "@#{assebly_segment_name}",
+          "@#{assebly_segment_or_operation}",
           'A=D+M',
           'D=M',
           '@SP',
@@ -62,9 +71,9 @@ class Translator
           '@SP',
           'M=M+1'
         ].join("\n").concat("\n")
-      elsif segment_name == 'constant'
+      elsif segment_or_operation == 'constant'
         [
-          "// push #{segment_name} #{segment_offset}",
+          "// push #{segment_or_operation} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
           '@SP',
@@ -73,10 +82,10 @@ class Translator
           '@SP',
           'M=M+1'
         ].join("\n").concat("\n")
-      elsif segment_name == 'static'
+      elsif segment_or_operation == 'static'
         [
-          "// push #{segment_name} #{segment_offset}",
-          "@#{assebly_segment_name}",
+          "// push #{segment_or_operation} #{segment_offset}",
+          "@#{assebly_segment_or_operation}",
           'D=M',
           '@SP',
           'A=M',
@@ -84,9 +93,9 @@ class Translator
           '@SP',
           'M=M+1'
         ].join("\n").concat("\n")
-      elsif segment_name == 'temp'
+      elsif segment_or_operation == 'temp'
         [
-          "// push #{segment_name} #{segment_offset}",
+          "// push #{segment_or_operation} #{segment_offset}",
           '@5',
           'D=A',
           "@#{segment_offset}",
@@ -98,10 +107,10 @@ class Translator
           '@SP',
           'M=M+1'
         ].join("\n").concat("\n")
-      elsif segment_name == 'pointer'
+      elsif segment_or_operation == 'pointer'
         [
-          "// push #{segment_name} #{segment_offset}",
-          "@#{pointer_segment_name}",
+          "// push #{segment_or_operation} #{segment_offset}",
+          "@#{pointer_segment_or_operation}",
           'D=M',
           '@SP',
           'A=M',
@@ -111,12 +120,12 @@ class Translator
         ].join("\n").concat("\n")
       end
     when 'C_POP'
-      if REGULAR_SEGMENTS.include?(segment_name)
+      if REGULAR_SEGMENTS.include?(segment_or_operation)
         [
-          "// pop #{segment_name} #{segment_offset}",
+          "// pop #{segment_or_operation} #{segment_offset}",
           "@#{segment_offset}",
           'D=A',
-          "@#{assebly_segment_name}",
+          "@#{assebly_segment_or_operation}",
           'D=D+M',
           '@13',
           'M=D',
@@ -128,19 +137,19 @@ class Translator
           'A=M',
           'M=D'
         ].join("\n").concat("\n")
-      elsif segment_name == 'static'
+      elsif segment_or_operation == 'static'
         [
-          "// pop #{segment_name} #{segment_offset}",
+          "// pop #{segment_or_operation} #{segment_offset}",
           '@SP',
           'M=M-1',
           'A=M',
           'D=M',
-          "@#{assebly_segment_name}",
+          "@#{assebly_segment_or_operation}",
           'M=D'
         ].join("\n").concat("\n")
-      elsif segment_name == 'temp'
+      elsif segment_or_operation == 'temp'
         [
-          "// pop #{segment_name} #{segment_offset}",
+          "// pop #{segment_or_operation} #{segment_offset}",
           '@5',
           'D=A',
           "@#{segment_offset}",
@@ -155,14 +164,14 @@ class Translator
           'A=M',
           'M=D'
         ].join("\n").concat("\n")
-      elsif segment_name == 'pointer'
+      elsif segment_or_operation == 'pointer'
         [
-          "// pop #{segment_name} #{segment_offset}",
+          "// pop #{segment_or_operation} #{segment_offset}",
           '@SP',
           'M=M-1',
           'A=M',
           'D=M',
-          "@#{pointer_segment_name}",
+          "@#{pointer_segment_or_operation}",
           'M=D'
         ].join("\n").concat("\n")
       end
@@ -171,7 +180,7 @@ class Translator
 
   private
 
-  def segment_name
+  def segment_or_operation # should be segment or operation
     arguments[0]
   end
 
@@ -179,8 +188,8 @@ class Translator
     arguments[1]
   end
 
-  def assebly_segment_name
-    case segment_name
+  def assebly_segment_or_operation
+    case segment_or_operation
     when 'local'
       'LCL'
     when 'argument'
@@ -194,12 +203,37 @@ class Translator
     end
   end
 
-  def pointer_segment_name
+  def vm_to_cond_jump
+    'J' + segment_or_operation.upcase
+  end
+
+  def vm_to_arithmetic_op
+    case segment_or_operation
+    when 'add'
+      '+'
+    when 'sub'
+      '-'
+    when 'and'
+      '&'
+    when 'or'
+      '|'
+    when 'not'
+      '!'
+    when 'neg'
+      '-'
+    end
+  end
+
+  def pointer_segment_or_operation
     if arguments[1] == '0'
       'THIS'
     else
       'THAT'
     end
+  end
+
+  def jmp_condition_label
+    "TRUE_COND_#{@jmp_label_count}"
   end
 
   def shorten_filename

@@ -1,6 +1,8 @@
 // push pointer 0
 // pushes of this into the the current SP position
 
+
+// WHEN ITS EQUAL
 //SET UP
 // sets SP to 30
 @30
@@ -9,12 +11,13 @@ D=A
 M=D
 
 // Set UP
-// sets M[29] to a value 5
-@5
+// sets M[29] to a value 6
+@6
 D=A
 @29
 M=D
 
+// Set UP
 // sets M[28] to a value 6
 @6
 D=A
@@ -23,7 +26,7 @@ M=D
 
 // expected
 // M[0]  == 29
-// M[28] == 11
+// M[28]  == -1
 
 @SP
 M=M-1
@@ -31,4 +34,11 @@ A=M
 D=M
 @SP
 A=M-1
-M=M+D
+D=M-D
+M=-1
+@EQUAL
+D;JEQ
+@SP
+A=M
+M=0
+(EQUAL)

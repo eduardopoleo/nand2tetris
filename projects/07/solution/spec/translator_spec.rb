@@ -4,7 +4,58 @@ require_relative '../code/translator'
 describe Translator do
   describe '.translate' do
     let(:filename) { 'Overrideme.vm' }
-    subject { described_class.translate(operation, arguments, filename) }
+    subject { described_class.new(filename).translate(operation, arguments) }
+
+    context 'when there 2 or more conditional jmp operations' do
+      let(:translator) { described_class.new(filename) }
+
+      let(:result1) do
+        [
+          '// eq',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'D=M',
+          '@SP',
+          'A=M-1',
+          'D=M-D',
+          'M=-1',
+          '@TRUE_COND_0',
+          'D;JEQ',
+          '@SP',
+          'A=M-1',
+          'M=0',
+          '(TRUE_COND_0)'
+        ].join("\n").concat("\n")
+      end
+
+      let(:result2) do
+        [
+          '// eq',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'D=M',
+          '@SP',
+          'A=M-1',
+          'D=M-D',
+          'M=-1',
+          '@TRUE_COND_1',
+          'D;JEQ',
+          '@SP',
+          'A=M-1',
+          'M=0',
+          '(TRUE_COND_1)'
+        ].join("\n").concat("\n")
+      end
+
+      it 'produces distinct jmp labels for each operation' do
+        blob1 = translator.translate('C_ARITHMETIC', ['eq'])
+        blob2 = translator.translate('C_ARITHMETIC', ['eq'])
+
+        expect(blob1 + blob2).to eq(result1 + result2)
+      end
+    end
 
     context 'when the operation is a C_ARITHMETIC' do
       let(:operation) { 'C_ARITHMETIC' }
@@ -20,11 +71,8 @@ describe Translator do
             'A=M',
             'D=M',
             '@SP',
-            'M=M-1',
-            'A=M',
-            'M=M+D',
-            '@SP',
-            'M=M+1'
+            'A=M-1',
+            'M=M+D'
           ].join("\n").concat("\n")
         end
 
@@ -42,11 +90,154 @@ describe Translator do
             'A=M',
             'D=M',
             '@SP',
+            'A=M-1',
+            'M=M-D'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'or' do
+        let(:arguments) { ['or'] }
+
+        let(:result) do
+          [
+            '// or',
+            '@SP',
             'M=M-1',
             'A=M',
-            'M=M-D',
+            'D=M',
             '@SP',
-            'M=M+1'
+            'A=M-1',
+            'M=M|D'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'and' do
+        let(:arguments) { ['and'] }
+
+        let(:result) do
+          [
+            '// and',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'A=M-1',
+            'M=M&D'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'neg' do
+        let(:arguments) { ['neg'] }
+
+        let(:result) do
+          [
+            '// neg',
+            '@SP',
+            'A=M-1',
+            'M=-M'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'not' do
+        let(:arguments) { ['not'] }
+
+        let(:result) do
+          [
+            '// not',
+            '@SP',
+            'A=M-1',
+            'M=!M'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'eq' do
+        let(:arguments) { ['eq'] }
+
+        let(:result) do
+          [
+            '// eq',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'A=M-1',
+            'D=M-D',
+            'M=-1',
+            '@TRUE_COND_0',
+            'D;JEQ',
+            '@SP',
+            'A=M-1',
+            'M=0',
+            '(TRUE_COND_0)'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'lt' do
+        let(:arguments) { ['lt'] }
+
+        let(:result) do
+          [
+            '// lt',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'A=M-1',
+            'D=M-D',
+            'M=-1',
+            '@TRUE_COND_0',
+            'D;JLT',
+            '@SP',
+            'A=M-1',
+            'M=0',
+            '(TRUE_COND_0)'
+          ].join("\n").concat("\n")
+        end
+
+        it { is_expected.to eq(result) }
+      end
+
+      context 'gt' do
+        let(:arguments) { ['gt'] }
+
+        let(:result) do
+          [
+            '// gt',
+            '@SP',
+            'M=M-1',
+            'A=M',
+            'D=M',
+            '@SP',
+            'A=M-1',
+            'D=M-D',
+            'M=-1',
+            '@TRUE_COND_0',
+            'D;JGT',
+            '@SP',
+            'A=M-1',
+            'M=0',
+            '(TRUE_COND_0)'
           ].join("\n").concat("\n")
         end
 
