@@ -16,6 +16,27 @@ class Translator
     @arguments = arguments
 
     case operation
+    when 'C_IF'
+      [
+        "// if-goto #{arguments[0]}",
+        '@SP',
+        'M=M-1',
+        'A=M',
+        'D=M',
+        "@#{arguments[0]}",
+        'D;JNE'
+      ].join("\n").concat("\n")
+    when 'C_GOTO'
+      [
+        "// goto #{arguments[0]}",
+        "@#{arguments[0]}",
+        '0;JMP'
+      ].join("\n").concat("\n")
+    when 'C_LABEL'
+      [
+        '// label',
+        "(#{arguments[0]})"
+      ].join("\n").concat("\n")
     when 'C_ARITHMETIC'
       if ARITHMETIC_OPERATIONS.include?(segment_or_operation)
         [

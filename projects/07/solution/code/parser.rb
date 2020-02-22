@@ -1,5 +1,6 @@
 class Parser
   attr_reader :command
+  ARITHMETIC_OPERATIONS = ['add', 'sub', 'and', 'or']
 
   def self.parse(command)
     new(command).parse
@@ -12,18 +13,25 @@ class Parser
   def parse
     tokens = command.split(' ')
 
-    operation = case tokens[0]
+    case tokens[0]
     when 'push'
-      'C_PUSH'
-    when 'pop'
-      'C_POP'
-    end
-
-    if operation
+      operation = 'C_PUSH'
       arguments = [tokens[1], tokens[2]]
-    else
+    when 'pop'
+      operation = 'C_POP'
+      arguments = [tokens[1], tokens[2]]
+    when lambda { |op| ARITHMETIC_OPERATIONS.include?(op) }
       operation = 'C_ARITHMETIC'
-      arguments = [command]
+      arguments = [tokens[0]]
+    when 'label'
+      operation = 'C_LABEL'
+      arguments = [tokens[1]]
+    when 'goto'
+      operation = 'C_GOTO'
+      arguments = [tokens[1]]
+    when 'if-goto'
+      operation = 'C_IF'
+      arguments = [tokens[1]]
     end
 
     [operation, arguments]

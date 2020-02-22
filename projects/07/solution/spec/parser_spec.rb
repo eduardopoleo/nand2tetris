@@ -25,5 +25,33 @@ describe Parser do
 
       it { is_expected.to eq(result) }
     end
+
+    context 'when is and arithmetic operation' do
+      let(:command) { 'sub' }
+      let(:result) { ['C_ARITHMETIC', ['sub']] }
+
+      it { is_expected.to eq(result) }
+    end
+
+    context 'when its a label operation' do
+      let(:command) { 'label loop' }
+      let(:result) { ['C_LABEL', ['loop']] }
+
+      it { is_expected.to eq(result) }
+    end
+
+    context 'when its a goto operation' do
+      let(:command) { 'goto loop' }
+      let(:result) { ['C_GOTO', ['loop']] }
+
+      it { is_expected.to eq(result) }
+    end
+
+    context 'when its a goto operation' do
+      let(:command) { 'if-goto loop' }
+      let(:result) { ['C_IF', ['loop']] }
+
+      it { is_expected.to eq(result) }
+    end
   end
 end

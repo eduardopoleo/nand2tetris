@@ -6,6 +6,54 @@ describe Translator do
     let(:filename) { 'Overrideme.vm' }
     subject { described_class.new(filename).translate(operation, arguments) }
 
+    context 'when the operation is a C_IF' do
+      let(:operation) { 'C_IF' }
+      let(:arguments) { ['ifloop'] }
+
+      let(:result) do
+        [
+          '// if-goto ifloop',
+          '@SP',
+          'M=M-1',
+          'A=M',
+          'D=M',
+          '@ifloop',
+          'D;JNE'
+        ].join("\n").concat("\n")
+      end
+
+      it { is_expected.to eq(result) }
+    end
+
+    context 'when the operation is a C_GOTO' do
+      let(:operation) { 'C_GOTO' }
+      let(:arguments) { ['goto_loop'] }
+
+      let(:result) do
+        [
+          '// goto goto_loop',
+          '@goto_loop',
+          '0;JMP'
+        ].join("\n").concat("\n")
+      end
+
+      it { is_expected.to eq(result) }
+    end
+
+    context 'when the operation is a C_LABEL' do
+      let(:operation) { 'C_LABEL' }
+      let(:arguments) { ['label_loop'] }
+
+      let(:result) do
+        [
+          '// label',
+          '(label_loop)'
+        ].join("\n").concat("\n")
+      end
+
+      it { is_expected.to eq(result) }
+    end
+
     context 'when there 2 or more conditional jmp operations' do
       let(:translator) { described_class.new(filename) }
 
